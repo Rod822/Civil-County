@@ -15,3 +15,26 @@ rojo serve
 ```
 
 For more help, check out [the Rojo documentation](https://rojo.space/docs).
+
+## PlayersDataService
+```bash
+OnPlayerAdded(player)
+```
+This method creates (or loads) the player’s profile when they join the game
+
+
+```bash
+OnPlayerRemoving(player)
+```
+When the player leaves — save their data and clean up memory
+
+```bash
+AddMoney(player, amount)
+```
+Adds selected amounty of money to the player’s profile and updates leaderstats
+
+
+```bash
+RemoveMoney(player, amount)
+```
+Tries to subtract money from the player’s profile, updates leaderstats and returns whether it succeeded
