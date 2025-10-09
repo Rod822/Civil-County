@@ -1,6 +1,11 @@
 local DataStoreService = game:GetService("DataStoreService")
 local DS = DataStoreService:GetDataStore("PlayerData")
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Classes = ReplicatedStorage:WaitForChild("Classes")
+
+local Profile = require(Classes.Profile)
+
 local PlayersDataService = {}
 PlayersDataService.__index = PlayersDataService
 
@@ -18,7 +23,8 @@ function PlayersDataService:OnPlayerAdded(player: Player)
 		LoadedData = { Money = 200 }
 	end
 
-	self._profiles[player.UserId] = setmetatable(LoadedData, PlayersDataService)
+	local profile = Profile.new(player.UserId, LoadedData)
+	self._profiles[player.UserId] = profile
 
 	local leaderstats = Instance.new("Folder")
 	leaderstats.Name = "leaderstats"
@@ -36,10 +42,9 @@ function PlayersDataService:OnPlayerRemoving(player: Player)
 		return
 	end
 
+	local PersistentData = profile.persistent
 	local success, err = pcall(function()
-		DS:SetAsync(tostring(player.UserId), {
-			Money = profile.Money,
-		})
+		DS:SetAsync(tostring(player.UserId), PersistentData)
 	end)
 	if not success then
 		warn("Failed to save data for player: " .. player.UserId .. " Error: " .. err .. " Data: " .. profile.Money)
@@ -52,12 +57,12 @@ function PlayersDataService:AddMoney(player: Player, amount: number)
 	if not profile then
 		return
 	end
-	profile.Money = profile.Money + amount
+	profile.persistent.Money = profile.persistent.Money + amount
 	local leaderstats = player:FindFirstChild("leaderstats")
 	if leaderstats then
 		local Money = leaderstats:FindFirstChild("Money")
 		if Money then
-			Money.Value = profile.Money
+			Money.Value = profile.persistent.Money
 		end
 	end
 end
@@ -67,15 +72,15 @@ function PlayersDataService:RemoveMoney(player: Player, amount: number): boolean
 	if not profile then
 		return nil -- Profile not found
 	end
-	if profile.Money < amount then
+	if profile.persistent.Money < amount then
 		return false -- Not enough money
 	end
-	profile.Money = profile.Money - amount
+	profile.persistent.Money = profile.persistent.Money - amount
 	local leaderstats = player:FindFirstChild("leaderstats")
 	if leaderstats then
 		local Money = leaderstats:FindFirstChild("Money")
 		if Money then
-			Money.Value = profile.Money
+			Money.Value = profile.persistent.Money
 		end
 	end
 	return true -- Successfully removed money
