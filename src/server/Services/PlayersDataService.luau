@@ -47,7 +47,7 @@ function PlayersDataService:OnPlayerRemoving(player: Player)
 		DS:SetAsync(tostring(player.UserId), PersistentData)
 	end)
 	if not success then
-		warn("Failed to save data for player: " .. player.UserId .. " Error: " .. err .. " Data: " .. profile.Money)
+		warn("Failed to save data for player: " .. player.UserId .. " Error: " .. err)
 	end
 	self._profiles[player.UserId] = nil
 end
@@ -58,6 +58,7 @@ function PlayersDataService:AddMoney(player: Player, amount: number)
 		return
 	end
 	profile.persistent.Money = profile.persistent.Money + amount
+	print(profile)
 	local leaderstats = player:FindFirstChild("leaderstats")
 	if leaderstats then
 		local Money = leaderstats:FindFirstChild("Money")
@@ -84,6 +85,24 @@ function PlayersDataService:RemoveMoney(player: Player, amount: number): boolean
 		end
 	end
 	return true -- Successfully removed money
+end
+
+function PlayersDataService:SetData(player: Player, key: string, value: any)
+	local profile = self._profiles[player.UserId]
+	if not profile then
+		warn("Profile not found for" .. player.Name)
+		return
+	end
+
+	if profile.persistent[key] ~= nil then
+		profile.persistent[key] = value
+		return
+	end
+	if profile.session[key] ~= nil then
+		profile.session[key] = value
+		return
+	end
+	warn("[PlayersDataService] Unknown data key " .. key)
 end
 
 return PlayersDataService

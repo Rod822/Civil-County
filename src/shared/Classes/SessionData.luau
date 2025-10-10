@@ -2,12 +2,12 @@ local SessionData = {}
 SessionData.__index = SessionData
 
 export type SessionData = {
-	paycheckBounus: number,
+	paycheckBonus: number,
 	job: string,
 }
 
 local DEFAULTS = {
-	paycheckBounus = 0,
+	paycheckBonus = 0,
 	job = "Civilian",
 }
 

@@ -16,10 +16,4 @@ function PersistentData.new(tableFromDataStore: { [string]: any }?): PersistentD
 	return setmetatable(obj, PersistentData)
 end
 
-function PersistentData:getTable(): { [string]: any }
-	return {
-		Money = self.Money,
-	}
-end
-
 return PersistentData

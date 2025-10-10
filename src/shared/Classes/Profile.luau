@@ -13,7 +13,6 @@ export type Profile = {
 
 function Profile.new(userId: number, tableFromDataStore: { [string]: any }?): Profile
 	local self = setmetatable({}, Profile)
-	self.userId = userId
 	self.persistent = PersistentData.new(tableFromDataStore)
 	self.session = SessionData.new()
 	return self

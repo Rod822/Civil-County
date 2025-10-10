@@ -38,3 +38,20 @@ Adds selected amounty of money to the player’s profile and updates leaderstats
 RemoveMoney(player, amount)
 ```
 Tries to subtract money from the player’s profile, updates leaderstats and returns whether it succeeded
+
+## JobService
+
+### Jobs
+    Police = {
+		teamName = "Police",
+		basePay = 250,
+	},
+	FireService = {
+		teamName = "Fire Service",
+		basePay = 230,
+	},
+	Paramedic = {
+		teamName = "Paramedic",
+		basePay = 220,
+	},
+
