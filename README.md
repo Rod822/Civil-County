@@ -55,3 +55,4 @@ Tries to subtract money from the player’s profile, updates leaderstats and ret
 		basePay = 220,
 	},
 
+# Документація не дороблена, в коді набагато більше функціоналу

@@ -3,6 +3,7 @@ local ServerScriptService = game:GetService("ServerScriptService")
 
 local JobService = require(ServerScriptService.Services.JobService)
 local PlayersDataService = require(ServerScriptService.Services.PlayersDataService)
+local NotificationService = require(ServerScriptService.Services.NotificationService)
 
 Players.PlayerAdded:Connect(function(player)
 	PlayersDataService:OnPlayerAdded(player)
@@ -14,6 +15,11 @@ Players.PlayerAdded:Connect(function(player)
 	if not RemoveMoney then
 		print("Player " .. player.Name .. " does not have enough money to remove 100")
 	end
+
+	NotificationService:SendTo(player, "Promotion to Sergeant!", "Police")
+	NotificationService:Broadcast("Server restart in 5 minutes", "Server")
+	NotificationService:SendToJob("Police", "Fire reported at warehouse", "Dispatch")
+	NotificationService:Paycheck(player, 250, 50, 300, "Police")
 
 	task.wait(5) -- for testing purposes
 	JobService:fireFromJob(player, "Police") -- for testing purposes

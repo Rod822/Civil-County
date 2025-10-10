@@ -58,7 +58,6 @@ function PlayersDataService:AddMoney(player: Player, amount: number)
 		return
 	end
 	profile.persistent.Money = profile.persistent.Money + amount
-	print(profile)
 	local leaderstats = player:FindFirstChild("leaderstats")
 	if leaderstats then
 		local Money = leaderstats:FindFirstChild("Money")
