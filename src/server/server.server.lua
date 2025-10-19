@@ -4,6 +4,10 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local JobService = require(ServerScriptService.Services.JobService)
 local PlayersDataService = require(ServerScriptService.Services.PlayersDataService)
 local NotificationService = require(ServerScriptService.Services.NotificationService)
+local AutocompleteSearchService = require(ServerScriptService.Services.AutocompleteSearchService)
+
+AutocompleteSearchService.InitTree(game.Workspace.Name, game.Workspace)
+print(AutocompleteSearchService.Search("Workspace", "P"))
 
 Players.PlayerAdded:Connect(function(player)
 	PlayersDataService:OnPlayerAdded(player)

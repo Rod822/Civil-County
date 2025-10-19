@@ -55,4 +55,22 @@ Tries to subtract money from the player’s profile, updates leaderstats and ret
 		basePay = 220,
 	},
 
+
+## AutocompleteSearchService.luau
+Будує префіксальні дерева (tries) з папки з обʼєктами, відслідковує ChildAdded/ChildRemoved
+Builds prefix trees (tries) from a folder of objects, tracks ChildAdded/ChildRemoved
+### API:
+
+#### AutocompleteSearchService.InitTree(name: string, folder: Instance)
+Створює префіксальне дерево з іменем `name` з папки з обʼєктами `folder`. Автоматично оновлює trie при додаванні або видаленні обʼєктів з `folder`.
+Creates a prefix tree named `name` from the folder with objects `folder`. Automatically updates the trie when objects are added or removed from the `folder`.
+
+#### AutocompleteSearchService.Search(name: string, prefix: string, limit: number?) -> {Instance}
+Виповнює пошук елементів з префіксом `prefix` по раніше створеному префіксальному дереву з іменем `name`. Повертає таблюцю з екземплярами дотримуюючись ліміту `limit`, якщо він заданий.
+Searches for elements with prefix `prefix` in a previously created prefix tree with name `name`. Returns a table of instances, subject to limit `limit`, if given.
+
+#### AutocompleteSearchService.RemoveTree(name: string) -> boolean
+Видаляє раніше створене префіксальне дерево з іменем `name`.
+Deletes the previously created prefix tree with the name `name`.
+
 # Документація не дороблена, в коді набагато більше функціоналу

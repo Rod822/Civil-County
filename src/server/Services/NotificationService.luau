@@ -1,5 +1,3 @@
---!strict
--- NotificationService: глобальные/личные сообщения + пейчек
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")

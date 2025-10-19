@@ -1,5 +1,3 @@
---!strict
--- Слушаем NotifyRE и показываем нотификации
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local StarterGui = game:GetService("StarterGui")
 
@@ -10,7 +8,6 @@ local function showToast(payload: { [string]: any })
 	local text = tostring(payload.text or "")
 	local duration = tonumber(payload.duration) or 5
 
-	-- показать уведомление (toast)
 	pcall(function()
 		StarterGui:SetCore("SendNotification", {
 			Title = title,
@@ -19,7 +16,6 @@ local function showToast(payload: { [string]: any })
 		})
 	end)
 
-	-- продублировать в чат
 	pcall(function()
 		StarterGui:SetCore("ChatMakeSystemMessage", {
 			Text = ("[%s] %s"):format(title, text),
