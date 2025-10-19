@@ -3,6 +3,7 @@ local Teams = game:GetService("Teams")
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local PlayersDataService = require(ServerScriptService:WaitForChild("Services"):WaitForChild("PlayersDataService"))
+local NotificationsService = require(ServerScriptService:WaitForChild("Services"):WaitForChild("NotificationService"))
 
 local JobServise = {}
 JobServise.__index = JobServise
@@ -71,6 +72,7 @@ function JobServise:assignJob(player: Player, jobName: string)
 	player.Team = team
 	giveServiceTools(player)
 	PlayersDataService:SetData(player, "job", jobName)
+	NotificationsService:SendTo(player, "You have been assigned to the " .. jobName .. " job.")
 	return true
 end
 
@@ -101,6 +103,7 @@ function JobServise:fireFromJob(player: Player, jobName: string)
 	removeServiceTools(player)
 	player.Team = civilianTeam
 	PlayersDataService:SetData(player, "job", "Civilian")
+	NotificationsService:SendTo(player, "You have been fired from the " .. jobName .. " job.")
 	return true
 end
 
@@ -122,6 +125,7 @@ function JobServise:paycheck(player: Player)
 	local totalPay = job.basePay + bonus
 	bonus = 0
 	PlayersDataService:AddMoney(player, totalPay)
+	NotificationsService:Paycheck(player, job.basePay, bonus, totalPay, jobName)
 end
 
 return JobServise

@@ -6,7 +6,7 @@ local TrieTreeRecord = require(Classes:WaitForChild("TrieTreeRecord"))
 
 local AutocompleteSearchService = {}
 
-local Trees: { [string]: any } = {}
+local Trees = {}
 
 function AutocompleteSearchService.InitTree(name: string, folder: Instance)
 	assert(typeof(name) == "string" and name ~= "", "InitTree: name must be non-empty string")

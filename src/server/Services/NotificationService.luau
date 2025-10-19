@@ -19,6 +19,8 @@ local function getRemote(): RemoteEvent
 	return re :: RemoteEvent
 end
 
+getRemote()
+
 local function dispatchTo(player: Player, payload: { [string]: any })
 	getRemote():FireClient(player, payload)
 end
