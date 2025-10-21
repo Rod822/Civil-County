@@ -65,7 +65,6 @@ function PlayersDataService:AddMoney(player: Player, amount: number)
 			Money.Value = profile.persistent.Money
 		end
 	end
-	print(self._profiles)
 end
 
 function PlayersDataService:RemoveMoney(player: Player, amount: number): boolean?

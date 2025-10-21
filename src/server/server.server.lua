@@ -1,4 +1,5 @@
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local JobService = require(ServerScriptService.Services.JobService)
@@ -6,8 +7,8 @@ local PlayersDataService = require(ServerScriptService.Services.PlayersDataServi
 local NotificationService = require(ServerScriptService.Services.NotificationService)
 local AutocompleteSearchService = require(ServerScriptService.Services.AutocompleteSearchService)
 
-AutocompleteSearchService.InitTree(game.Workspace.Name, game.Workspace)
-print(AutocompleteSearchService.Search("Workspace", "P"))
+--AutocompleteSearchService.InitTree(game.Workspace.Name, game.Workspace) -- for testing purposes
+--print(AutocompleteSearchService.Search("Workspace", "P")) -- for testing purposes
 
 Players.PlayerAdded:Connect(function(player)
 	PlayersDataService:OnPlayerAdded(player)

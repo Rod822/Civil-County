@@ -25,6 +25,7 @@ function AutocompleteSearchService.InitTree(name: string, folder: Instance)
 	tree.conns[#tree.conns + 1] = folder.ChildAdded:Connect(function(child)
 		tree:AddInstance(child)
 	end)
+
 	tree.conns[#tree.conns + 1] = folder.ChildRemoved:Connect(function(child)
 		tree:RemoveInstance(child)
 	end)
