@@ -12,6 +12,9 @@ PlayersDataService.__index = PlayersDataService
 PlayersDataService._profiles = {}
 
 function PlayersDataService:OnPlayerAdded(player: Player)
+	if self._profiles[player.UserId] then
+		return
+	end
 	local LoadedData: { Money: number }? = nil
 	local success, result = pcall(function()
 		return DS:GetAsync(tostring(player.UserId))

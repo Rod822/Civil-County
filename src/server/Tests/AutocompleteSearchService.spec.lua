@@ -1,6 +1,6 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
-local AutocompleteSearchService = require(ServerScriptService.Services.AutocompleteSearchService)
+local AutocompleteSearchService = require(ReplicatedStorage.Services:WaitForChild("AutocompleteSearchService"))
 local BoatTest = require(ReplicatedStorage.Packages.BoatTest)
 
 local this = BoatTest.this
@@ -24,10 +24,12 @@ local function createTestFolder()
 
 	return folder
 end
+createTestFolder().Parent = workspace
 
 return {
 	["Tree initialization and remove"] = function(skip)
 		local folder = createTestFolder()
+		folder.Parent = workspace
 		AutocompleteSearchService.InitTree("Fruits", folder)
 		local removed = AutocompleteSearchService.RemoveTree("Fruits")
 		this(removed).will.equal(true)

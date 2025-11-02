@@ -5,7 +5,7 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local JobService = require(ServerScriptService.Services.JobService)
 local PlayersDataService = require(ServerScriptService.Services.PlayersDataService)
 local NotificationService = require(ServerScriptService.Services.NotificationService)
-local AutocompleteSearchService = require(ServerScriptService.Services.AutocompleteSearchService)
+local AutocompleteSearchService = require(ReplicatedStorage.Services:WaitForChild("AutocompleteSearchService"))
 
 --AutocompleteSearchService.InitTree(game.Workspace.Name, game.Workspace) -- for testing purposes
 --print(AutocompleteSearchService.Search("Workspace", "P")) -- for testing purposes

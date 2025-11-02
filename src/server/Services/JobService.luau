@@ -1,9 +1,20 @@
 local Players = game:GetService("Players")
 local Teams = game:GetService("Teams")
 local ServerScriptService = game:GetService("ServerScriptService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local PlayersDataService = require(ServerScriptService:WaitForChild("Services"):WaitForChild("PlayersDataService"))
 local NotificationsService = require(ServerScriptService:WaitForChild("Services"):WaitForChild("NotificationService"))
+
+local function getRemote(): RemoteEvent
+	local re = ReplicatedStorage:FindFirstChild("JobServiseRE")
+	if not re then
+		re = Instance.new("RemoteEvent")
+		re.Name = "JobServiseRE"
+		re.Parent = ReplicatedStorage
+	end
+	return re :: RemoteEvent
+end
 
 local JobServise = {}
 JobServise.__index = JobServise
@@ -12,20 +23,31 @@ JobServise.Jobs = {
 	Police = {
 		teamName = "Police",
 		basePay = 250,
+		jobDescription = "Maintain law and order in the city.",
 	},
 	FireService = {
 		teamName = "Fire Service",
 		basePay = 230,
+		jobDescription = "Respond to fire emergencies and rescue civilians.",
 	},
 	Paramedic = {
 		teamName = "Paramedic",
 		basePay = 220,
+		jobDescription = "Provide medical assistance and transport to those in need.",
 	},
 	Civilian = {
 		teamName = "Civilian",
 		basePay = 50,
+		jobDescription = "Live your life as a regular citizen.",
 	},
 }
+getRemote().OnServerEvent:Connect(function(player: Player, jobName: string)
+	local jobService = JobServise
+	local success = jobService:assignJob(player, jobName)
+	if not success then
+		warn("Failed to assign job " .. jobName .. " to player " .. player.Name)
+	end
+end)
 
 local function giveServiceTools(player)
 	local toolsFolder = player.Team
@@ -51,6 +73,8 @@ local function removeServiceTools(player)
 end
 
 Players.PlayerAdded:Connect(function(player)
+	getRemote():FireClient(player, JobServise.Jobs)
+
 	player.CharacterAdded:Connect(function(character)
 		giveServiceTools(player)
 	end)
@@ -68,7 +92,7 @@ function JobServise:assignJob(player: Player, jobName: string)
 		warn("Team " .. job.teamName .. " does not exist.")
 		return false
 	end
-
+	JobServise:fireFromJob(player)
 	player.Team = team
 	giveServiceTools(player)
 	PlayersDataService:SetData(player, "job", jobName)
@@ -76,7 +100,9 @@ function JobServise:assignJob(player: Player, jobName: string)
 	return true
 end
 
-function JobServise:fireFromJob(player: Player, jobName: string)
+function JobServise:fireFromJob(player: Player)
+	local jobName = PlayersDataService._profiles[player.UserId]
+		and PlayersDataService._profiles[player.UserId].session.job
 	local profile = PlayersDataService._profiles[player.UserId]
 	if not profile then
 		warn("Profile not found for player: " .. player.Name)
@@ -97,6 +123,10 @@ function JobServise:fireFromJob(player: Player, jobName: string)
 	local civilianTeam = Teams:FindFirstChild(civilianJob.teamName)
 	if not civilianTeam then
 		warn("Civilian team does not exist.")
+		return false
+	end
+
+	if player.Team == civilianTeam then
 		return false
 	end
 
