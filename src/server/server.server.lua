@@ -42,3 +42,14 @@ coroutine.wrap(function()
 		end
 	end
 end)()
+
+-- RIOT
+local ServerScriptService = game:GetService("ServerScriptService")
+local RiotManager = require(ServerScriptService.Services:WaitForChild("RiotManagerService"))
+
+local riotZone = workspace:WaitForChild("RiotZone")
+RiotManager:Init(riotZone)
+
+RiotManager.OnRiotStarted.Event:Connect(function(inZoneCount, totalPlayers)
+	print("RIOT STARTED", inZoneCount, totalPlayers)
+end)
