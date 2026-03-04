@@ -1,0 +1,29 @@
+@startuml SequenceJobAssignment
+!define ACCENT_COLOR #3498db
+!define PRIMARY_COLOR #2c3e50
+
+skinparam sequenceArrowColor PRIMARY_COLOR
+skinparam actorBackgroundColor #e8f4f8
+skinparam participantBackgroundColor #ffe8b6
+
+Title Job Assignment Sequence
+
+actor Admin
+participant "JobService"
+participant "Teams"
+participant "PlayersDataService"
+participant "Profile"
+participant "NotificationService"
+participant "RemoteEvent"
+participant "Client"
+
+Admin -> JobService: assignJob(player, "Police")
+JobService -> Teams: FindFirstChild("Police")
+JobService -> PlayersDataService: SetData(player, "job", "Police")
+PlayersDataService -> Profile: session.job = "Police"
+JobService -> NotificationService: SendTo(player, message)
+NotificationService -> RemoteEvent: FireClient(player, payload)
+RemoteEvent -> Client: Notification
+Client -> Client: Display message
+
+@enduml

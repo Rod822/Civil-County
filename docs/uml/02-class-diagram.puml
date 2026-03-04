@@ -1,0 +1,158 @@
+@startuml Civil_County_ClassDiagram
+!define ACCENT_COLOR #3498db
+!define PRIMARY_COLOR #2c3e50
+!define CLASS_COLOR #e8f4f8
+!define SERVICE_COLOR #fff3cd
+
+skinparam backgroundColor #ecf0f1
+skinparam classBorderColor PRIMARY_COLOR
+skinparam classBackgroundColor CLASS_COLOR
+skinparam arrowColor PRIMARY_COLOR
+
+package "Shared.Classes" {
+    class Profile {
+        -userId: number
+        -persistent: PersistentData
+        -session: SessionData
+        --
+        +new(userId, tableFromDataStore): Profile
+    }
+
+    class PersistentData {
+        -Money: number
+        --
+        +new(tableFromDataStore): PersistentData
+        +DEFAULTS: {Money: 200}
+    }
+
+    class SessionData {
+        -job: string = "Civilian"
+        -paycheckBonus: number = 0
+        --
+        +new(): SessionData
+        +DEFAULTS
+    }
+
+    class TrieNode {
+        -children: {[string]: Node}
+        -isEnd: boolean
+        --
+        +new(): Node
+        +Insert(word): void
+        +Find(prefix): Node
+        +Collect(prefix, out, limit): void
+    }
+
+    class TrieTreeRecord {
+        -root: TrieNode
+        -folder: Instance
+        -index: {[string]: {Instance}}
+        -conns: {RBXScriptConnection}
+        --
+        +new(folder): TrieTreeRecord
+        +AddInstance(inst): void
+        +RemoveInstance(inst): void
+        +Search(prefix, limit): {Instance}
+    }
+}
+
+package "Server.Services" {
+    class PlayersDataService <<SERVICE>> {
+        -_profiles: {[number]: Profile}
+        --
+        +OnPlayerAdded(player): void
+        +OnPlayerRemoving(player): void
+        +AddMoney(player, amount): void
+        +RemoveMoney(player, amount): boolean?
+        +SetData(player, key, value): void
+    }
+
+    class JobService <<SERVICE>> {
+        -Jobs: {[string]: Job}
+        --
+        +assignJob(player, jobName): boolean
+        +fireFromJob(player, jobName): boolean
+        +paycheck(player): void
+        -{giveServiceTools(player): void}
+        -{removeServiceTools(player): void}
+    }
+
+    class NotificationService <<SERVICE>> {
+        -DEFAULT_DURATION: number = 5
+        --
+        +Broadcast(text, title?, duration?): void
+        +SendTo(player, text, title?, duration?): void
+        +SendToJob(jobName, text, title?, duration?): void
+        +Paycheck(player, base, bonus, total, jobName): void
+        -{getRemote(): RemoteEvent}
+        -{dispatchTo(player, payload): void}
+    }
+
+    class AutocompleteSearchService <<SERVICE>> {
+        -Trees: {[string]: TrieTreeRecord}
+        --
+        +InitTree(name, folder): void
+        +Search(name, prefix, limit?): {Instance}
+        +RemoveTree(name): boolean
+    }
+}
+
+package "Client" {
+    class NotificationClient {
+        --
+        Receives: NotifyRE RemoteEvent
+        Displays: Notifications on GUI
+    }
+}
+
+' Relationships
+Profile *-- PersistentData : contains
+Profile *-- SessionData : contains
+
+PlayersDataService --> Profile : manages
+PlayersDataService --> "ReplicatedStorage.Classes" : requires
+
+JobService --> PlayersDataService : depends on
+JobService --> NotificationService : depends on
+JobService --> Profile : uses
+
+NotificationService --> PlayersDataService : depends on
+NotificationService --> "ReplicatedStorage.NotifyRE" : uses
+
+AutocompleteSearchService --> TrieTreeRecord : uses
+TrieTreeRecord --> TrieNode : contains
+
+NotificationClient --> "ReplicatedStorage.NotifyRE" : listens
+
+' Notes
+note right of PlayersDataService
+  Manages player data lifecycle
+  - Profile creation
+  - DataStore sync
+  - Leaderstats management
+  - Money operations
+end note
+
+note right of JobService
+  Core gameplay system
+  - Job assignments
+  - Team management
+  - Tools distribution
+  - Paycheck calculation
+end note
+
+note right of NotificationService
+  Communication channel
+  - Server to client
+  - Uses RemoteEvent
+  - Supports broadcasting
+  - Formatted messages
+end note
+
+note right of AutocompleteSearchService
+  Performance-optimized search
+  - Trie-based prefix search
+  - Dynamic index updates
+  - Multiple search trees
+end note
+@enduml

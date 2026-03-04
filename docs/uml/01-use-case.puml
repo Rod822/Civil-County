@@ -1,0 +1,16 @@
+@startuml UseCaseCivilCounty
+left to right direction
+actor Player
+
+rectangle "Civil-County System" {
+  Player --> (Join Server)
+  Player --> (View Balance)
+  Player --> (Receive Job Assignment)
+  Player --> (Perform Job)
+  Player --> (Receive Paycheck)
+  Player --> (Receive Notification)
+  Player --> (Search Objects)
+  Player --> (Leave Server)
+}
+
+@enduml

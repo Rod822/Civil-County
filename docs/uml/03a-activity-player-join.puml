@@ -1,0 +1,49 @@
+@startuml ActivityPlayerJoinActivity
+!define ACCENT_COLOR #3498db
+!define PRIMARY_COLOR #2c3e50
+!define DECISION_COLOR #f39c12
+!define ACTIVITY_COLOR #e8f4f8
+
+skinparam backgroundColor #ecf0f1
+skinparam ActivityBorderColor PRIMARY_COLOR
+skinparam ActivityBackgroundColor ACTIVITY_COLOR
+skinparam ActivityFontColor #333
+skinparam DecisionBorderColor DECISION_COLOR
+skinparam DecisionBackgroundColor #ffe8b6
+skinparam ArrowColor PRIMARY_COLOR
+skinparam ArrowFontColor #333
+
+title Player Join Workflow
+
+start
+
+:Player joins server;
+note right : Event: Players.PlayerAdded
+
+:PlayersDataService:OnPlayerAdded;
+:Attempt to load from DataStore;
+
+if (Data exists?) then (yes)
+    :Load existing data;
+    :money = DataStore value;
+else (no)
+    :Create default data;
+    :money = 200;
+endif
+
+:Create Profile object;
+:Set profile.persistent;
+:Set profile.session;
+:Store in _profiles[];
+
+:Create leaderstats folder;
+:Create Money IntValue;
+:Set initial Money value;
+
+:Player initialization complete;
+note right : Profile ready for JobService
+note right : Leaderstats visible in-game
+
+end
+
+@enduml

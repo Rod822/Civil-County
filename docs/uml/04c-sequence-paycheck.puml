@@ -1,0 +1,31 @@
+@startuml SequencePaycheckProcessing
+!define ACCENT_COLOR #3498db
+!define PRIMARY_COLOR #2c3e50
+
+skinparam sequenceArrowColor PRIMARY_COLOR
+skinparam actorBackgroundColor #e8f4f8
+skinparam participantBackgroundColor #ffe8b6
+
+Title Paycheck Processing Sequence
+
+actor Timer
+participant "JobService"
+participant "PlayersDataService"
+participant "Profile"
+participant "DataStore"
+participant "NotificationService"
+participant "RemoteEvent"
+participant "Client"
+
+Timer -> JobService: paycheck(player)
+JobService -> Profile: Get session.job
+JobService -> JobService: Get basePay
+JobService -> PlayersDataService: AddMoney(player, totalPay)
+PlayersDataService -> Profile: persistent.Money += totalPay
+PlayersDataService -> DataStore: Schedule save
+JobService -> NotificationService: Paycheck(player, base, bonus, total, job)
+NotificationService -> RemoteEvent: FireClient(player, payload)
+RemoteEvent -> Client: Notification
+Client -> Client: Display paycheck details
+
+@enduml

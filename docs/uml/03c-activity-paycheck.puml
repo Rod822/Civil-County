@@ -1,0 +1,65 @@
+@startuml ActivityPaycheckActivity
+!define ACCENT_COLOR #3498db
+!define PRIMARY_COLOR #2c3e50
+!define DECISION_COLOR #f39c12
+!define ACTIVITY_COLOR #e8f4f8
+
+skinparam backgroundColor #ecf0f1
+skinparam ActivityBorderColor PRIMARY_COLOR
+skinparam ActivityBackgroundColor ACTIVITY_COLOR
+skinparam ActivityFontColor #333
+skinparam DecisionBorderColor DECISION_COLOR
+skinparam DecisionBackgroundColor #ffe8b6
+skinparam ArrowColor PRIMARY_COLOR
+skinparam ArrowFontColor #333
+
+title Paycheck Workflow
+
+start
+
+:Timer triggers paycheck;
+:JobService:paycheck(player);
+
+if (Profile exists?) then (no)
+    :Log error;
+    end
+else (yes)
+endif
+
+:Get player's current job;
+:Retrieve job from session.job;
+
+if (Valid job?) then (no)
+    :Log error;
+    end
+else (yes)
+endif
+
+:Get job definition;
+:Fetch basePay from Jobs[];
+
+:Get bonus amount;
+:bonus = session.paycheckBonus;
+
+:Calculate total pay;
+:totalPay = basePay + bonus;
+
+:Reset bonus to 0;
+:session.paycheckBonus = 0;
+
+:PlayersDataService:AddMoney;
+:persistent.Money += totalPay;
+:Update leaderstats.Money;
+
+:NotificationService:Paycheck;
+:Format paycheck message;
+:Include: Job, Base, Bonus, Total;
+:Send to player via RemoteEvent;
+
+:Paycheck processed;
+note right : Money updated in DataStore
+note right : Notification appears on client
+
+end
+
+@enduml

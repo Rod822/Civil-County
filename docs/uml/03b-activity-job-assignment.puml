@@ -1,0 +1,61 @@
+@startuml ActivityJobAssignmentActivity
+!define ACCENT_COLOR #3498db
+!define PRIMARY_COLOR #2c3e50
+!define DECISION_COLOR #f39c12
+!define ACTIVITY_COLOR #e8f4f8
+
+skinparam backgroundColor #ecf0f1
+skinparam ActivityBorderColor PRIMARY_COLOR
+skinparam ActivityBackgroundColor ACTIVITY_COLOR
+skinparam ActivityFontColor #333
+skinparam DecisionBorderColor DECISION_COLOR
+skinparam DecisionBackgroundColor #ffe8b6
+skinparam ArrowColor PRIMARY_COLOR
+skinparam ArrowFontColor #333
+
+title Job Assignment Workflow
+
+start
+
+:Admin/System requests job assignment;
+:JobService:assignJob(player, jobName);
+
+if (Job exists?) then (no)
+    :Return false;
+    :Log error;
+    end
+else (yes)
+endif
+
+if (Team exists?) then (no)
+    :Return false;
+    :Log error;
+    end
+else (yes)
+endif
+
+:Get team instance;
+:Set player.Team;
+
+:Remove old job tools;
+:Clone new job tools;
+:Add tools to Backpack;
+
+:Update session data;
+:session.job = jobName;
+
+:PlayersDataService:SetData;
+:Update profile.session;
+
+:NotificationService:SendTo;
+:Create notification message;
+:Send to player via RemoteEvent;
+
+:Return true;
+:Job assigned successfully;
+note right : Player now sees new tools
+note right : Notification displays on client
+
+end
+
+@enduml

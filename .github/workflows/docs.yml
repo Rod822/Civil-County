@@ -1,0 +1,70 @@
+name: Build & Deploy Docs
+
+on:
+  push:
+    branches: [ "main", "feature/docs-ci" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Doxygen
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y doxygen
+
+      - name: Install PlantUML and Graphviz
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y plantuml graphviz
+
+      - name: Generate UML diagram images
+        run: |
+          # ensure output directory exists
+          mkdir -p build/docs/html/uml
+          for file in docs/uml/*.puml; do
+            plantuml -tpng -o build/docs/html/uml "$file" || true
+          done
+
+      - name: Prepare output dir
+        run: mkdir -p build/docs
+
+      - name: Build docs
+        run: doxygen Doxyfile
+
+      - name: Copy UML sources and guide after Doxygen
+        run: |
+          mkdir -p build/docs/html/uml
+          cp docs/uml/*.puml build/docs/html/uml/ || true
+          cp docs/uml/*.png build/docs/html/uml/ || true
+          cp docs/uml/README.md build/docs/html/uml/ || true
+          cp docs/uml/index.html build/docs/html/uml/ || true
+
+      - name: Upload docs artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/docs/html
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4

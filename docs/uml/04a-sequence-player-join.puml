@@ -1,0 +1,16 @@
+@startuml SequencePlayerJoin
+actor Player
+participant Server
+participant PlayersDataService
+participant DataStore
+participant Profile
+participant Leaderstats
+
+Player -> Server: Join Request
+Server -> PlayersDataService: OnPlayerAdded(player)
+PlayersDataService -> DataStore: GetAsync(player.UserId)
+DataStore --> PlayersDataService: data / nil
+PlayersDataService -> Profile: new(player.UserId, data)
+PlayersDataService -> Leaderstats: create Money IntValue
+Server --> Player: Player joined
+@enduml
