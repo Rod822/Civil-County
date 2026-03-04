@@ -1,183 +1,56 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uk">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Civil-County UML Diagrams</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: #f6f8fa;
-            color: #24292e;
-        }
-        header {
-            background: #fff;
-            border-bottom: 1px solid #e1e4e8;
-            padding: 24px 0;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-        .container {
-            max-width: 1280px;
-            margin: 0 auto;
-            padding: 0 16px;
-        }
-        h1 { font-size: 32px; margin-bottom: 8px; }
-        .nav { margin-top: 16px; }
-        .nav a { color: #0366d6; text-decoration: none; margin-right: 16px; }
-        .nav a:hover { text-decoration: underline; }
-        main { padding: 32px 0; }
-        section { margin-bottom: 48px; }
-        h2 {
-            font-size: 24px;
-            margin-bottom: 16px;
-            border-bottom: 2px solid #e1e4e8;
-            padding-bottom: 8px;
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 24px;
-        }
-        .card {
-            background: #fff;
-            border: 1px solid #e1e4e8;
-            border-radius: 6px;
-            padding: 16px;
-            transition: box-shadow 0.2s;
-        }
-        .card:hover {
-            box-shadow: 0 3px 12px rgba(0,0,0,0.15);
-        }
-        .card h3 {
-            font-size: 16px;
-            margin-bottom: 8px;
-            color: #0366d6;
-        }
-        .card p {
-            font-size: 14px;
-            color: #586069;
-            line-height: 1.5;
-            margin-bottom: 12px;
-        }
-        .card img {
-            width: 100%;
-            height: auto;
-            border-radius: 4px;
-            margin-top: 12px;
-            border: 1px solid #e1e4e8;
-        }
-        .card a {
-            display: inline-block;
-            color: #0366d6;
-            text-decoration: none;
-            font-size: 14px;
-        }
-        .card a:hover {
-            text-decoration: underline;
-        }
-        footer {
-            background: #fff;
-            border-top: 1px solid #e1e4e8;
-            padding: 24px 0;
-            margin-top: 48px;
-            font-size: 12px;
-            color: #586069;
-            text-align: center;
-        }
-    </style>
+    <title>Civil-County: Лабораторна робота 1A</title>
 </head>
 <body>
-    <header>
-        <div class="container">
-            <h1>Civil-County UML Diagrams</h1>
-            <div class="nav">
-                <a href="https://github.com/Rod822/Civil-County">GitHub Repository</a>
-                <a href="https://rod822.github.io/Civil-County/">Main Documentation</a>
-            </div>
-        </div>
-    </header>
+    <h1>Civil-County: Лабораторна робота 1A</h1>
 
-    <main>
-        <div class="container">
-            <section>
-                <h2>Use Case Diagram</h2>
-                <div class="grid">
-                    <div class="card">
-                        <h3>Use Case: Civil County System</h3>
-                        <p>Overall system interactions between players, jobs, and payment processing.</p>
-                        <img src="UseCaseCivilCounty.png" alt="Use Case Diagram">
-                        <p><a href="01-use-case.puml">View Source (PUML)</a></p>
-                    </div>
-                </div>
-            </section>
+    <h2>Документація</h2>
+    <ul>
+        <li><a href="../ARCHITECTURE_ANALYSIS.md">Архітектурний аналіз</a></li>
+        <li><a href="../GLOSSARY.md">Глосарій</a></li>
+        <li><a href="../LAB_WORK_1A_REPORT.md">Звіт з лабораторної роботи 1A</a></li>
+    </ul>
 
-            <section>
-                <h2>Structural Diagram</h2>
-                <div class="grid">
-                    <div class="card">
-                        <h3>Class Diagram</h3>
-                        <p>System architecture showing services, data classes, and relationships.</p>
-                        <img src="Civil_County_ClassDiagram.png" alt="Class Diagram">
-                        <p><a href="02-class-diagram.puml">View Source (PUML)</a></p>
-                    </div>
-                </div>
-            </section>
+    <h2>UML Діаграми</h2>
 
-            <section>
-                <h2>Activity Diagrams</h2>
-                <div class="grid">
-                    <div class="card">
-                        <h3>Player Join Activity</h3>
-                        <p>Workflow for player joining and loading their data.</p>
-                        <img src="ActivityPlayerJoinActivity.png" alt="Player Join Activity">
-                        <p><a href="03a-activity-player-join.puml">View Source (PUML)</a></p>
-                    </div>
-                    <div class="card">
-                        <h3>Job Assignment Activity</h3>
-                        <p>Workflow for assigning jobs to players.</p>
-                        <img src="ActivityJobAssignmentActivity.png" alt="Job Assignment Activity">
-                        <p><a href="03b-activity-job-assignment.puml">View Source (PUML)</a></p>
-                    </div>
-                    <div class="card">
-                        <h3>Paycheck Processing Activity</h3>
-                        <p>Workflow for calculating and distributing paychecks.</p>
-                        <img src="ActivityPaycheckActivity.png" alt="Paycheck Activity">
-                        <p><a href="03c-activity-paycheck.puml">View Source (PUML)</a></p>
-                    </div>
-                </div>
-            </section>
+    <h3>Діаграма варіантів використання</h3>
+    <ul>
+        <li><a href="UseCaseCivilCounty.png">Use Case Diagram</a></li>
+    </ul>
 
-            <section>
-                <h2>Sequence Diagrams</h2>
-                <div class="grid">
-                    <div class="card">
-                        <h3>Player Join Sequence</h3>
-                        <p>Message flow when a player joins the game.</p>
-                        <img src="SequencePlayerJoin.png" alt="Player Join Sequence">
-                        <p><a href="04a-sequence-player-join.puml">View Source (PUML)</a></p>
-                    </div>
-                    <div class="card">
-                        <h3>Job Assignment Sequence</h3>
-                        <p>Message flow for job assignment process.</p>
-                        <img src="SequenceJobAssignment.png" alt="Job Assignment Sequence">
-                        <p><a href="04b-sequence-job-assignment.puml">View Source (PUML)</a></p>
-                    </div>
-                    <div class="card">
-                        <h3>Paycheck Processing Sequence</h3>
-                        <p>Message flow for paycheck processing.</p>
-                        <img src="SequencePaycheckProcessing.png" alt="Paycheck Sequence">
-                        <p><a href="04c-sequence-paycheck.puml">View Source (PUML)</a></p>
-                    </div>
-                </div>
-            </section>
-        </div>
-    </main>
+    <h3>Структурна діаграма</h3>
+    <ul>
+        <li><a href="Civil_County_ClassDiagram.png">Class Diagram</a></li>
+    </ul>
 
-    <footer>
-        <div class="container">
-            <p>UML Diagrams for Civil-County Roblox Game • Generated with PlantUML</p>
-        </div>
-    </footer>
+    <h3>Діаграми активності</h3>
+    <ul>
+        <li><a href="ActivityPlayerJoinActivity.png">Player Join Activity</a></li>
+        <li><a href="ActivityJobAssignmentActivity.png">Job Assignment Activity</a></li>
+        <li><a href="ActivityPaycheckActivity.png">Paycheck Processing Activity</a></li>
+    </ul>
+
+    <h3>Діаграми послідовності</h3>
+    <ul>
+        <li><a href="SequencePlayerJoin.png">Player Join Sequence</a></li>
+        <li><a href="SequenceJobAssignment.png">Job Assignment Sequence</a></li>
+        <li><a href="SequencePaycheckProcessing.png">Paycheck Processing Sequence</a></li>
+    </ul>
+
+    <h2>Джерела (PUML файли)</h2>
+    <ul>
+        <li><a href="01-use-case.puml">01-use-case.puml</a></li>
+        <li><a href="02-class-diagram.puml">02-class-diagram.puml</a></li>
+        <li><a href="03a-activity-player-join.puml">03a-activity-player-join.puml</a></li>
+        <li><a href="03b-activity-job-assignment.puml">03b-activity-job-assignment.puml</a></li>
+        <li><a href="03c-activity-paycheck.puml">03c-activity-paycheck.puml</a></li>
+        <li><a href="04a-sequence-player-join.puml">04a-sequence-player-join.puml</a></li>
+        <li><a href="04b-sequence-job-assignment.puml">04b-sequence-job-assignment.puml</a></li>
+        <li><a href="04c-sequence-paycheck.puml">04c-sequence-paycheck.puml</a></li>
+    </ul>
 </body>
 </html>

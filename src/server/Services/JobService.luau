@@ -1,10 +1,9 @@
 local Players = game:GetService("Players")
 local Teams = game:GetService("Teams")
-local ServerScriptService = game:GetService("ServerScriptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local PlayersDataService = require(ServerScriptService:WaitForChild("Services"):WaitForChild("PlayersDataService"))
-local NotificationsService = require(ServerScriptService:WaitForChild("Services"):WaitForChild("NotificationService"))
+local JobConfig = require(ReplicatedStorage:WaitForChild("Classes"):WaitForChild("JobConfig"))
+local EventSystem = require(ReplicatedStorage:WaitForChild("Classes"):WaitForChild("EventSystem"))
 
 local function getRemote(): RemoteEvent
 	local re = ReplicatedStorage:FindFirstChild("JobServiseRE")
@@ -16,72 +15,36 @@ local function getRemote(): RemoteEvent
 	return re :: RemoteEvent
 end
 
-local JobServise = {}
-JobServise.__index = JobServise
+local JobService = {}
+JobService.__index = JobService
 
-JobServise.Jobs = {
-	Police = {
-		teamName = "Police",
-		basePay = 250,
-		jobDescription = "Maintain law and order in the city.",
-	},
-	FireService = {
-		teamName = "Fire Service",
-		basePay = 230,
-		jobDescription = "Respond to fire emergencies and rescue civilians.",
-	},
-	Paramedic = {
-		teamName = "Paramedic",
-		basePay = 220,
-		jobDescription = "Provide medical assistance and transport to those in need.",
-	},
-	Civilian = {
-		teamName = "Civilian",
-		basePay = 50,
-		jobDescription = "Live your life as a regular citizen.",
-	},
-}
+function JobService.new(playersDataService, notificationsService)
+	local self = setmetatable({}, JobService)
+	self._playersDataService = playersDataService
+	self._notificationsService = notificationsService
+	self._eventSystem = EventSystem.new()
+	self._jobs = JobConfig
+
+	-- Підписка на події
+	self._eventSystem:Connect("PlayerJoined", function(player)
+		getRemote():FireClient(player, self._jobs)
+	end)
+
+	self._eventSystem:Connect("PlayerCharacterAdded", function(player)
+		self:_giveServiceTools(player)
+	end)
+
+	return self
+end
 getRemote().OnServerEvent:Connect(function(player: Player, jobName: string)
-	local jobService = JobServise
-	local success = jobService:assignJob(player, jobName)
+	local success = _G.JobService:assignJob(player, jobName)
 	if not success then
 		warn("Failed to assign job " .. jobName .. " to player " .. player.Name)
 	end
 end)
 
-local function giveServiceTools(player)
-	local toolsFolder = player.Team
-	for _, item in pairs(toolsFolder:GetChildren()) do
-		if item:IsA("Tool") then
-			local toolClone = item:Clone()
-			toolClone.Parent = player.Backpack
-		end
-	end
-end
-
-local function removeServiceTools(player)
-	for _, item in pairs(player.Backpack:GetChildren()) do
-		if item:IsA("Tool") then
-			for _, teamItem in pairs(player.Team:GetChildren()) do
-				if teamItem:IsA("Tool") and teamItem.Name == item.Name then
-					item:Destroy()
-					break
-				end
-			end
-		end
-	end
-end
-
-Players.PlayerAdded:Connect(function(player)
-	getRemote():FireClient(player, JobServise.Jobs)
-
-	player.CharacterAdded:Connect(function(character)
-		giveServiceTools(player)
-	end)
-end)
-
-function JobServise:assignJob(player: Player, jobName: string)
-	local job = self.Jobs[jobName]
+function JobService:assignJob(player: Player, jobName: string)
+	local job = self._jobs[jobName]
 	if not job then
 		warn("Job " .. jobName .. " does not exist.")
 		return false
@@ -92,29 +55,27 @@ function JobServise:assignJob(player: Player, jobName: string)
 		warn("Team " .. job.teamName .. " does not exist.")
 		return false
 	end
-	JobServise:fireFromJob(player)
+	self:fireFromJob(player)
 	player.Team = team
-	giveServiceTools(player)
-	PlayersDataService:SetData(player, "job", jobName)
-	NotificationsService:SendTo(player, "You have been assigned to the " .. jobName .. " job.")
+	self:_giveServiceTools(player)
+	self._playersDataService:SetData(player, "job", jobName)
+	self._notificationsService:SendTo(player, "You have been assigned to the " .. jobName .. " job.")
 	return true
 end
 
-function JobServise:fireFromJob(player: Player)
-	local jobName = PlayersDataService._profiles[player.UserId]
-		and PlayersDataService._profiles[player.UserId].session.job
-	local profile = PlayersDataService._profiles[player.UserId]
+function JobService:fireFromJob(player: Player)
+	local profile = self._playersDataService._profiles[player.UserId]
 	if not profile then
 		warn("Profile not found for player: " .. player.Name)
 		return false
 	end
 
-	if profile.session.job ~= jobName then
-		warn("Player " .. player.Name .. " is not in job " .. jobName)
+	local jobName = profile.session.job
+	if not jobName then
 		return false
 	end
 
-	local civilianJob = self.Jobs["Civilian"]
+	local civilianJob = self._jobs["Civilian"]
 	if not civilianJob then
 		warn("Civilian job does not exist.")
 		return false
@@ -130,22 +91,22 @@ function JobServise:fireFromJob(player: Player)
 		return false
 	end
 
-	removeServiceTools(player)
+	self:_removeServiceTools(player)
 	player.Team = civilianTeam
-	PlayersDataService:SetData(player, "job", "Civilian")
-	NotificationsService:SendTo(player, "You have been fired from the " .. jobName .. " job.")
+	self._playersDataService:SetData(player, "job", "Civilian")
+	self._notificationsService:SendTo(player, "You have been fired from the " .. jobName .. " job.")
 	return true
 end
 
-function JobServise:paycheck(player: Player)
-	local profile = PlayersDataService._profiles[player.UserId]
+function JobService:paycheck(player: Player)
+	local profile = self._playersDataService._profiles[player.UserId]
 	if not profile then
 		warn("Profile not found for player: " .. player.Name)
 		return
 	end
 
 	local jobName = profile.session.job
-	local job = self.Jobs[jobName]
+	local job = self._jobs[jobName]
 	if not job then
 		warn("Player " .. player.Name .. " has no valid job for paycheck.")
 		return
@@ -154,8 +115,29 @@ function JobServise:paycheck(player: Player)
 	local bonus = profile.session.paycheckBonus or 0
 	local totalPay = job.basePay + bonus
 	bonus = 0
-	PlayersDataService:AddMoney(player, totalPay)
-	NotificationsService:Paycheck(player, job.basePay, bonus, totalPay, jobName)
+	self._playersDataService:AddMoney(player, totalPay)
+	self._notificationsService:Paycheck(player, job.basePay, bonus, totalPay, jobName)
 end
 
-return JobServise
+function JobService:_giveServiceTools(player)
+	local toolsFolder = player.Team
+	for _, item in pairs(toolsFolder:GetChildren()) do
+		if item:IsA("Tool") then
+			local toolClone = item:Clone()
+			toolClone.Parent = player.Backpack
+		end
+	end
+end
+
+function JobService:_removeServiceTools(player)
+	for _, item in pairs(player.Backpack:GetChildren()) do
+		if item:IsA("Tool") then
+			for _, teamItem in pairs(player.Team:GetChildren()) do
+				if teamItem:IsA("Tool") and teamItem.Name == item.Name then
+					item:Destroy()
+					break
+				end
+			end
+		end
+	end
+end

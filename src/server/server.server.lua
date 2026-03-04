@@ -2,10 +2,17 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
-local JobService = require(ServerScriptService.Services.JobService)
+local JobServiceModule = require(ServerScriptService.Services.JobService)
 local PlayersDataService = require(ServerScriptService.Services.PlayersDataService)
 local NotificationService = require(ServerScriptService.Services.NotificationService)
 local AutocompleteSearchService = require(ReplicatedStorage.Services:WaitForChild("AutocompleteSearchService"))
+local EventSystem = require(ReplicatedStorage.Classes.EventSystem)
+
+-- Ініціалізація системи подій
+_G.EventSystem = EventSystem.new()
+
+-- Ініціалізація сервісів з dependency injection
+_G.JobService = JobServiceModule.new(PlayersDataService, NotificationService)
 
 --AutocompleteSearchService.InitTree(game.Workspace.Name, game.Workspace) -- for testing purposes
 --print(AutocompleteSearchService.Search("Workspace", "P")) -- for testing purposes
@@ -13,9 +20,9 @@ local AutocompleteSearchService = require(ReplicatedStorage.Services:WaitForChil
 Players.PlayerAdded:Connect(function(player)
 	PlayersDataService:OnPlayerAdded(player)
 
-	JobService:assignJob(player, "Police") -- for testing purposes
+	_G.JobService:assignJob(player, "Police") -- for testing purposes
 	PlayersDataService:AddMoney(player, 200) -- for testing purposes
-	JobService:paycheck(player) -- for testing purposes
+	_G.JobService:paycheck(player) -- for testing purposes
 	local RemoveMoney = PlayersDataService:RemoveMoney(player, 100) -- for testing purposes
 	if not RemoveMoney then
 		print("Player " .. player.Name .. " does not have enough money to remove 100")
@@ -27,7 +34,7 @@ Players.PlayerAdded:Connect(function(player)
 	NotificationService:Paycheck(player, 250, 50, 300, "Police")
 
 	task.wait(5) -- for testing purposes
-	JobService:fireFromJob(player, "Police") -- for testing purposes
+	_G.JobService:fireFromJob(player) -- for testing purposes
 end)
 
 Players.PlayerRemoving:Connect(function(player)
@@ -38,7 +45,7 @@ coroutine.wrap(function()
 	while true do
 		task.wait(60)
 		for _, player in pairs(Players:GetPlayers()) do
-			JobService:paycheck(player)
+			_G.JobService:paycheck(player)
 		end
 	end
 end)()
