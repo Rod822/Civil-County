@@ -2,8 +2,10 @@ local Players = game:GetService("Players")
 local Teams = game:GetService("Teams")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local JobConfig = require(ReplicatedStorage:WaitForChild("Classes"):WaitForChild("JobConfig"))
-local EventSystem = require(ReplicatedStorage:WaitForChild("Classes"):WaitForChild("EventSystem"))
+local JobConfig       = require(ReplicatedStorage:WaitForChild("Classes"):WaitForChild("JobConfig"))
+local EventSystem     = require(ReplicatedStorage:WaitForChild("Classes"):WaitForChild("EventSystem"))
+local ValidationChain = require(ReplicatedStorage:WaitForChild("Patterns").Behavioral.ValidationChain)
+local GameCommand     = require(ReplicatedStorage:WaitForChild("Patterns").Behavioral.GameCommand)
 
 local function getRemote(): RemoteEvent
 	local re = ReplicatedStorage:FindFirstChild("JobServiseRE")
@@ -24,6 +26,7 @@ function JobService.new(playersDataService, notificationsService)
 	self._notificationsService = notificationsService
 	self._eventSystem = EventSystem.new()
 	self._jobs = JobConfig
+	self._invokers = {}
 
 	-- Підписка на події
 	self._eventSystem:Connect("PlayerJoined", function(player)
@@ -141,3 +144,59 @@ function JobService:_removeServiceTools(player)
 		end
 	end
 end
+
+-- Runs the full ValidationChain → AssignJobCommand → CommandInvoker pipeline.
+-- Returns a result table consumed by the live demo RemoteEvent.
+function JobService:assignJobValidated(player: Player, jobName: string)
+	local data = { player = player, jobName = jobName }
+
+	local validatorDefs = {
+		{ name = "PlayerValidator",   v = ValidationChain.PlayerValidator.new() },
+		{ name = "JobValidator",      v = ValidationChain.JobValidator.new() },
+		{ name = "LevelValidator",    v = ValidationChain.LevelValidator.new() },
+		{ name = "LocationValidator", v = ValidationChain.LocationValidator.new() },
+	}
+
+	local steps = {}
+	local chainPassed = true
+
+	for _, def in ipairs(validatorDefs) do
+		if not chainPassed then
+			table.insert(steps, { name = def.name, passed = nil, msg = "skipped" })
+		else
+			local ok, msg = def.v:validate(data)
+			table.insert(steps, { name = def.name, passed = ok, msg = msg })
+			if not ok then
+				chainPassed = false
+			end
+		end
+	end
+
+	local existingInvoker = self._invokers[player.UserId]
+	local hSize = existingInvoker and existingInvoker:getHistorySize() or 0
+
+	if not chainPassed then
+		return { action = "assign", steps = steps, success = false, jobName = jobName, historySize = hSize }
+	end
+
+	if not existingInvoker then
+		self._invokers[player.UserId] = GameCommand.CommandInvoker.new(10)
+	end
+	local invoker = self._invokers[player.UserId]
+
+	local cmd = GameCommand.AssignJobCommand.new(self, player, jobName)
+	local success = invoker:execute(cmd)
+
+	return { action = "assign", steps = steps, success = success, jobName = jobName, historySize = invoker:getHistorySize() }
+end
+
+function JobService:undoLastAssignment(player: Player)
+	local invoker = self._invokers[player.UserId]
+	if not invoker or invoker:getHistorySize() == 0 then
+		return { action = "undo", success = false, historySize = 0 }
+	end
+	local ok = invoker:undo()
+	return { action = "undo", success = ok, historySize = invoker:getHistorySize() }
+end
+
+return JobService

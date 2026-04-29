@@ -78,7 +78,8 @@ MainGUI.Balance.BalanceText.Text = "$" .. formattedCost(player:WaitForChild("lea
 
 -- TeamSelect Frame
 local conn
-ReplicatedStorage:FindFirstChild("JobServiseRE").OnClientEvent:Connect(function(jobs: table)
+local jobRE = ReplicatedStorage:WaitForChild("JobServiseRE")
+jobRE.OnClientEvent:Connect(function(jobs: table)
 	if typeof(jobs) == "table" then
 		for jobName, jobInfo in pairs(jobs) do
 			local button = ReplicatedStorage.UIs.JobListTextButton:Clone()
@@ -95,7 +96,7 @@ ReplicatedStorage:FindFirstChild("JobServiseRE").OnClientEvent:Connect(function(
 				TeamSelectFrame.JobInfo.Frame.DescriptionText.Text = jobInfo.jobDescription
 
 				conn = TeamSelectFrame.JobInfo.Frame.JoinButton.MouseButton1Click:Connect(function()
-					ReplicatedStorage:FindFirstChild("JobServiseRE"):FireServer(jobName)
+					jobRE:FireServer(jobName)
 					TeamSelectFrame.Visible = false
 					TeamSelectFrame.JobInfo.Frame.Visible = false
 				end)
