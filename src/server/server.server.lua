@@ -33,6 +33,24 @@ if not ReplicatedStorage:FindFirstChild("JobAssignResultRE") then
 	re.Parent = ReplicatedStorage
 end
 
+if not ReplicatedStorage:FindFirstChild("SimControlRE") then
+	local re = Instance.new("RemoteEvent")
+	re.Name = "SimControlRE"
+	re.Parent = ReplicatedStorage
+end
+
+if not ReplicatedStorage:FindFirstChild("SimSpawnRE") then
+	local re = Instance.new("RemoteEvent")
+	re.Name = "SimSpawnRE"
+	re.Parent = ReplicatedStorage
+end
+
+if not ReplicatedStorage:FindFirstChild("SimStatsRE") then
+	local re = Instance.new("RemoteEvent")
+	re.Name = "SimStatsRE"
+	re.Parent = ReplicatedStorage
+end
+
 local JobServiceModule = require(ServerScriptService.Services.JobService)
 local PlayersDataService = require(ServerScriptService.Services.PlayersDataService)
 local NotificationService = require(ServerScriptService.Services.NotificationService)

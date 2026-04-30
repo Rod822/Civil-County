@@ -12,6 +12,7 @@ local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
 local liveDemoConnection = nil
+local simDemoConnection  = nil
 
 local JobFactory        = require(ReplicatedStorage.Patterns.Factories.JobFactory)
 local NotificationFactory = require(ReplicatedStorage.Patterns.Factories.NotificationFactory)
@@ -51,6 +52,7 @@ local CATEGORY_COLOR = {
 	Structural        = Color3.fromRGB(120, 70, 160),
 	Behavioral        = Color3.fromRGB(40, 130, 100),
 	["Live Use Case"] = Color3.fromRGB(160, 100, 30),
+	["Simulation"]    = Color3.fromRGB(30, 140, 130),
 }
 
 local W, H = 740, 560
@@ -1460,6 +1462,193 @@ demos["Job Assignment"] = function()
 	setCanvas(y + 10)
 end
 
+-- ── NPC Simulation ───────────────────────────────────────────
+demos["NPC Simulation"] = function()
+	if simDemoConnection then
+		simDemoConnection:Disconnect()
+		simDemoConnection = nil
+	end
+
+	local simControlRE = ReplicatedStorage:WaitForChild("SimControlRE")
+	local simSpawnRE   = ReplicatedStorage:WaitForChild("SimSpawnRE")
+	local simStatsRE   = ReplicatedStorage:WaitForChild("SimStatsRE")
+
+	local y = drawHeader(
+		"NPC Simulation",
+		"Simulation",
+		"Multi-agent city simulation. Real Humanoid NPCs navigate via PathfindingService. "
+		.. "Agents run in parallel task.spawn workers each tick. "
+		.. "Observer pattern streams stats to this panel. Commands support undo."
+	)
+
+	-- ── Riot status strip
+	local riotStrip = Instance.new("Frame")
+	riotStrip.Size              = UDim2.new(0, PW - 10, 0, 26)
+	riotStrip.Position          = UDim2.new(0, 10, 0, y)
+	riotStrip.BackgroundColor3  = C.green
+	riotStrip.BorderSizePixel   = 0
+	riotStrip.Parent            = contentScroll
+	local riotLbl = Instance.new("TextLabel")
+	riotLbl.Size                = UDim2.new(1, -10, 1, 0)
+	riotLbl.Position            = UDim2.new(0, 8, 0, 0)
+	riotLbl.BackgroundTransparency = 1
+	riotLbl.TextColor3          = Color3.new(1, 1, 1)
+	riotLbl.Font                = Enum.Font.GothamBold
+	riotLbl.TextSize            = 12
+	riotLbl.TextXAlignment      = Enum.TextXAlignment.Left
+	riotLbl.Text                = "Status: CALM"
+	riotLbl.Parent              = riotStrip
+	y = y + 32
+
+	-- ── Stat grid (2 × 3)
+	local statDefs = {
+		{ key = "tick",       lbl = "Tick #"       },
+		{ key = "citizens",   lbl = "Citizens"      },
+		{ key = "officers",   lbl = "Officers"      },
+		{ key = "panicking",  lbl = "Panicking"     },
+		{ key = "responding", lbl = "Responding"    },
+	}
+	local statVals = {}
+	local cellW, cellH = math.floor((PW - 10) / 3), 46
+	for i, def in ipairs(statDefs) do
+		local col = (i - 1) % 3
+		local row = math.floor((i - 1) / 3)
+		local cell = Instance.new("Frame")
+		cell.Size             = UDim2.new(0, cellW - 4, 0, cellH)
+		cell.Position         = UDim2.new(0, 10 + col * cellW, 0, y + row * (cellH + 4))
+		cell.BackgroundColor3 = C.card
+		cell.BorderSizePixel  = 0
+		cell.Parent           = contentScroll
+		makeLabel(cell, def.lbl,
+			UDim2.new(1, -6, 0, 16), UDim2.new(0, 6, 0, 4),
+			C.textDim, 10, Enum.Font.Gotham)
+		local val = makeLabel(cell, "—",
+			UDim2.new(1, -6, 0, 22), UDim2.new(0, 6, 0, 18),
+			C.accent, 16, Enum.Font.GothamBold)
+		statVals[def.key] = val
+	end
+	local rowCount = math.ceil(#statDefs / 3)
+	y = y + rowCount * (cellH + 4) + 6
+
+	-- ── Intensity bar
+	makeLabel(contentScroll, "Panic intensity",
+		UDim2.new(0, PW, 0, 14), UDim2.new(0, 10, 0, y), C.textDim, 10)
+	y = y + 14
+	local barBg = Instance.new("Frame")
+	barBg.Size             = UDim2.new(0, PW - 10, 0, 10)
+	barBg.Position         = UDim2.new(0, 10, 0, y)
+	barBg.BackgroundColor3 = C.border
+	barBg.BorderSizePixel  = 0
+	barBg.Parent           = contentScroll
+	local barFill = Instance.new("Frame")
+	barFill.Size             = UDim2.new(0, 0, 1, 0)
+	barFill.BackgroundColor3 = C.green
+	barFill.BorderSizePixel  = 0
+	barFill.Parent           = barBg
+	y = y + 16
+
+	makeSeparator(contentScroll, y)
+	y = y + 10
+
+	-- ── Control buttons row
+	local ctrlDefs = {
+		{ lbl = "▶ Start",   action = "start",  col = C.green       },
+		{ lbl = "⏸ Pause",  action = "pause",  col = C.accentDim   },
+		{ lbl = "↺ Reset",   action = "reset",  col = C.red         },
+		{ lbl = "⎌ Undo",    action = "undo",   col = C.amber       },
+		{ lbl = "⚡ 2× Fast", action = "fast",   col = C.accentDim  },
+		{ lbl = "⏱ Normal",  action = "normal", col = C.accentDim  },
+	}
+	local btnW = math.floor((PW - 10) / 3) - 4
+	for i, def in ipairs(ctrlDefs) do
+		local col = (i - 1) % 3
+		local row = math.floor((i - 1) / 3)
+		local b = makeBtn(contentScroll, def.lbl,
+			UDim2.new(0, btnW, 0, 28),
+			UDim2.new(0, 10 + col * (btnW + 6), 0, y + row * 32),
+			def.col)
+		local act = def.action
+		b.MouseButton1Click:Connect(function()
+			simControlRE:FireServer(act)
+		end)
+	end
+	y = y + 68
+
+	makeSeparator(contentScroll, y)
+	y = y + 10
+
+	-- ── Spawn buttons
+	makeLabel(contentScroll, "Spawn NPC into running simulation:",
+		UDim2.new(0, PW, 0, 14), UDim2.new(0, 10, 0, y), C.textDim, 10)
+	y = y + 16
+
+	local spawnDefs = {
+		{ lbl = "+ Spawn Citizen",  type = "Citizen",  col = C.green     },
+		{ lbl = "+ Spawn Officer",  type = "Officer",  col = C.accentDim },
+	}
+	local spawnW = math.floor((PW - 22) / 2)
+	for i, def in ipairs(spawnDefs) do
+		local b = makeBtn(contentScroll, def.lbl,
+			UDim2.new(0, spawnW, 0, 30),
+			UDim2.new(0, 10 + (i - 1) * (spawnW + 6), 0, y),
+			def.col)
+		local agentType = def.type
+		b.MouseButton1Click:Connect(function()
+			simSpawnRE:FireServer(agentType)
+		end)
+	end
+	y = y + 36
+
+	makeSeparator(contentScroll, y)
+	y = y + 10
+
+	-- ── Event log
+	makeLabel(contentScroll, "Live event log:",
+		UDim2.new(0, PW, 0, 14), UDim2.new(0, 10, 0, y), C.textDim, 10)
+	y = y + 16
+	local logOut = makeOutput(contentScroll,
+		UDim2.new(0, PW - 10, 0, 120),
+		UDim2.new(0, 10, 0, y))
+	y = y + 126
+
+	local logLines = {}
+	local lastRiot = nil
+	local function appendLog(msg)
+		table.insert(logLines, 1, msg)
+		if #logLines > 12 then table.remove(logLines) end
+		logOut.Text = table.concat(logLines, "\n")
+	end
+
+	-- ── Subscribe to SimStatsRE
+	simDemoConnection = simStatsRE.OnClientEvent:Connect(function(stats)
+		if not stats then return end
+
+		statVals["tick"].Text       = tostring(stats.tick or 0)
+		statVals["citizens"].Text   = tostring(stats.citizens or 0)
+		statVals["officers"].Text   = tostring(stats.officers or 0)
+		statVals["panicking"].Text  = tostring(stats.panicking or 0)
+		statVals["responding"].Text = tostring(stats.responding or 0)
+
+		-- Intensity bar
+		local intensity = (stats.citizens and stats.citizens > 0)
+			and math.clamp((stats.panicking or 0) / stats.citizens, 0, 1)
+			or 0
+		barFill.Size             = UDim2.new(intensity, 0, 1, 0)
+		barFill.BackgroundColor3 = intensity > 0.4 and C.red or C.green
+
+		-- Riot strip
+		if stats.riotActive ~= lastRiot then
+			lastRiot = stats.riotActive
+			riotStrip.BackgroundColor3 = stats.riotActive and C.red or C.green
+			riotLbl.Text = stats.riotActive and "Status: RIOT ACTIVE" or "Status: CALM"
+			appendLog(stats.riotActive and "[RIOT] Riot started — officers responding!"
+				or "[calm] Riot ended.")
+		end
+	end)
+
+	setCanvas(y + 10)
+end
+
 -- ──────────────────────────────────────────────────────────────
 -- Sidebar builder
 -- ──────────────────────────────────────────────────────────────
@@ -1479,6 +1668,10 @@ local patternList = {
 	{
 		category = "Live Use Case",
 		patterns = { "Job Assignment" },
+	},
+	{
+		category = "Simulation",
+		patterns = { "NPC Simulation" },
 	},
 }
 
